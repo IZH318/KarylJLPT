@@ -3,10 +3,59 @@
 (🖥 메인 화면) <BR> <BR>
 
 캬루와 함께 JLPT 공부 할 수 있는 웹 사이트입니다. <BR>
-🔗 URL: https://izh318.github.io/KarylJLPT/ <BR> <BR>
+**🔗 URL: https://izh318.github.io/KarylJLPT/** <BR> <BR>
 
 필수 기초 단어뿐만 아니라, JLPT N5부터 JLPT N1까지 다양한 난이도를 선택할 수 있습니다. <BR>
-(* 2024-09-06 기준 총 6,877 단어 등록)
+(* 2024-09-06 기준 총 6,877 단어 등록) <BR> <BR>
+
+**이 프로젝트는 비상업적인 목적으로만 사용 가능합니다.** <BR>
+
+<BR> <BR> <BR>
+
+## 🔄 업데이트 내역
+
+### v1.1.0 (2024-10-05)
+- **초기 로딩**
+  - 필요 리소스 목록 추가 및 해당 항목 비동기적으로 불러오는 로직 수정
+  - 리소스 요소 별 안내 문구 표시 로직 추가
+- **최종 결과 화면**
+  - 필요 이미지 모두 로딩 시 로딩 화면 사라지게 수정
+- **정오표**
+  - TTS 일본어 기본 설정 삭제
+  - `\n` 문자열을 띄어쓰기 한 칸으로 변경하여 반환되게 로직 추가
+  - 특정 웹 브라우저에서 정오표가 표시되지 않는 문제 해결
+    - Speech Synthesis API 지원 확인 로직 추가
+    - Speech Synthesis API 미지원 시 네이버 일본어사전 웹 사이트로 이동(새창)되는 로직 추가, 정오표 하단 안내 문구 표시
+  - 일부 환경에서 인쇄 관련 기능이 정상적으로 작동하지 않는 문제 해결
+    - 인쇄 창 생성 로직 변경
+    - 일부 요소 여백(padding) 값 변경
+    - 인쇄 시 Noto Serif Korean 폰트 사용하도록 로직 추가 및 변경
+- **기타**
+  - Noto Sans Korean 폰트 추가
+  - 웹 페이지 기본 폰트 'Noto Sans Korean'로 지정
+  - `script.js` 파일 일부 오탈자 및 문구 수정
+  - 스마트폰 및 태블릿 대상 레이아웃 수정
+
+<BR>
+
+<details>
+<summary>📜 이전 업데이트 내역 - 클릭하여 열기</summary>
+
+### v1.0.2 (2024-10-01)
+- **기타**
+  - `README.md` 파일 일부 오탈자 및 문구 수정
+
+### v1.0.1 (2024-09-30)
+- **기타**
+  - `index.html` 일부 오탈자 및 문구 수정
+
+### v1.0.0 (2024-09-30)
+- **기타**
+  - `캬루와 함께하는 JLPT` 게시
+
+</details>
+
+
 
 <BR> <BR> <BR>
 
@@ -176,6 +225,9 @@
 - **폰트**:  
   Allison <BR>
   🔗 URL: https://fonts.google.com/specimen/Allison <BR>
+  
+  Noto Sans Korean <BR>
+  🔗 URL: https://fonts.google.com/noto/specimen/Noto+Sans+KR <BR>
   
   Noto Serif Korean <BR>
   🔗 URL: https://fonts.google.com/noto/specimen/Noto+Serif+KR <BR> <BR>
