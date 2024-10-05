@@ -12,6 +12,7 @@ body {
   align-items: center;
   height: 100vh;
   overflow: hidden;
+  font-family: "NotoSansKR-Regular", Arial;
 }
 
 /* Confetti.js 전용 캔버스 */
@@ -440,7 +441,7 @@ button:active {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   width: 80vw;
-  max-height: 40vw;
+  height: 80vh;
   display: flex;
   flex-direction: column;
   opacity: 0;
@@ -498,7 +499,7 @@ button:active {
 }
 
 /* 화면 너비가 줄어들 때 (테블릿) */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1024px) {
   /* 로딩 화면 */
   /* 로딩 이미지 */
   #loading-image {
@@ -710,6 +711,8 @@ button:active {
   #resultButton button {
     text-align: center;
     font-size: 15px;
+    margin: 10px;
+    padding: 10px;
   }
 
   /* 정오표 컨테이너 */
@@ -743,8 +746,6 @@ button:active {
   .answer-sheet-container.show {
     display: flex;
     padding: 10px;
-    width: 80vw;
-    max-height: 80vh;
   }
 
   /* 오답 항목 강조 체크박스 컨테이너 */
@@ -978,6 +979,8 @@ button:active {
   #resultButton button {
     text-align: center;
     font-size: 12px;
+    margin: 10px;
+    padding: 10px;
   }
 
   /* 정오표 컨테이너 */
@@ -1011,8 +1014,6 @@ button:active {
   .answer-sheet-container.show {
     display: flex;
     padding: 10px;
-    width: 80vw;
-    max-height: 80vh;
   }
 
   /* 오답 항목 강조 체크박스 컨테이너 */
@@ -1031,6 +1032,12 @@ button:active {
   .confirmation-container.show {
     font-size: 12px;
   }
+}
+
+/* 기본 폰트 */
+@font-face {
+  font-family: "NotoSansKR-Regular";
+  src: url("./NotoSansKR-Regular.ttf") format("truetype");
 }
 
 /* 상장 다운로드 - 난이도 정보, 이름 */

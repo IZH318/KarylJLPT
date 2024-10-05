@@ -77,7 +77,7 @@ async function loadQuestions() {
     const response = await fetch("Questions.csv");
     if (!response.ok) {
       console.log("");
-      console.log(
+      console.erorr(
         "[SYSTEM] 네트워크 문제 발생(서버 응답이 HTTP 200~299 범위가 아님)"
       );
       throw new Error("네트워크 응답이 올바르지 않습니다."); // 서버 응답이 HTTP 200~299 범위가 아닐 경우 실행
@@ -108,7 +108,7 @@ async function loadQuestions() {
     });
   } catch (error) {
     console.log("");
-    console.error("Error loading questions:", error);
+    console.error("[SYSTEM] Error loading questions:", error);
     console.log("[SYSTEM] 문제 데이터(Questions.csv) 로딩 실패");
     alert("문제 데이터(Questions.csv)를 불러오는 데 실패했습니다.");
   }
@@ -129,15 +129,82 @@ function isTodaySpecialDate() {
   );
 }
 
-// 페이지가 로드될 때 문제 데이터 로드
+// 페이지가 로드될 때 필수 리소스 로드
 window.onload = async () => {
   console.log("");
   console.log("[SYSTEM] 로딩 화면 표시 중...");
   showLoadingScreen(); // 로딩 화면 표시
 
+  // 폰트 로드
+  const Noto_Sans_Font = new FontFace(
+    "Noto Sans KR Regular",
+    'url("./NotoSansKR-Regular.ttf")'
+  );
+  const Allison_Font = new FontFace("Allison", 'url("./Allison-Regular.ttf")');
+  const Noto_Serif_Font = new FontFace(
+    "Noto Serif KR",
+    'url("./NotoSerifKR-Regular.ttf")'
+  );
+
+  // 이미지 로드
+  const partnerImage = new Image();
+  partnerImage.src = "./asm_partner_01_base.png";
+
+  // 폰트 및 이미지 로드 대기
+  await Promise.all([
+    (async () => {
+      console.log("[SYSTEM] 폰트 로딩 중...");
+      document.querySelector("#loading-screen p").innerText = "폰트 로딩 중...";
+      try {
+        await Promise.all([
+          Noto_Sans_Font.load(),
+          Noto_Serif_Font.load(),
+          Allison_Font.load(),
+        ]);
+        console.log("[SYSTEM] 폰트 로딩 완료");
+        document.querySelector("#loading-screen p").innerText =
+          "폰트 로딩 완료";
+      } catch (error) {
+        console.error("[SYSTEM] 폰트 로딩 실패", error);
+        document.querySelector("#loading-screen p").innerText =
+          "폰트 로딩 실패";
+      }
+    })(),
+    new Promise((resolve) => {
+      console.log("[SYSTEM] 이미지 로딩 중...");
+      document.querySelector("#loading-screen p").innerText =
+        "이미지 로딩 중...";
+      partnerImage.onload = () => {
+        console.log("[SYSTEM] 이미지 로딩 완료");
+        document.querySelector("#loading-screen p").innerText =
+          "이미지 로딩 완료";
+        resolve();
+      };
+      partnerImage.onerror = () => {
+        console.error("[SYSTEM] 이미지 로딩 실패");
+        resolve(); // 오류 발생 시에도 resolve 호출
+      };
+    }),
+  ]);
+
+  // 로드한 폰트를 문서에 추가
+  document.fonts.add(Noto_Sans_Font);
+  document.fonts.add(Noto_Serif_Font);
+  document.fonts.add(Allison_Font);
+
   // 문제 데이터 로드
+  console.log("[SYSTEM] 문제 데이터(Questions.csv) 로딩 중...");
+  document.querySelector("#loading-screen p").innerText =
+    "문제 데이터 로딩 중...";
   await loadQuestions();
-  console.log("[SYSTEM] 문제 데이터(Questions.csv) 로드 완료");
+  console.log("[SYSTEM] 문제 데이터(Questions.csv) 로딩 완료");
+  document.querySelector("#loading-screen p").innerText =
+    "문제 데이터 로딩 완료";
+
+  // 모든 리소스 로딩 완료 메시지 표시
+  console.log("[SYSTEM] 모든 리소스 로딩 완료");
+  document.querySelector("#loading-screen p").innerText =
+    "모든 리소스 로딩 완료";
 
   // 페이지가 로드된 후 0.5초 대기 후 로딩 화면 숨기기
   await new Promise((resolve) => setTimeout(resolve, 500)); // 0.5초 대기
@@ -274,7 +341,7 @@ function confirmQuestionCount() {
       document.getElementById("questionCountContainer").style.display = "none";
       startQuiz(selectedDifficulty);
     }, 120);
-  }, 100); // 로딩 창이 표시된 후 0.1초 대기
+  }, 100); // 로딩 화면이 표시된 후 0.1초 대기
 }
 
 // 문제 수 입력 취소 함수
@@ -425,7 +492,7 @@ function confirmCustomQuestionCount() {
       customQuestionCountContainer.style.display = "none";
       startQuiz(); // 퀴즈 시작 함수 호출
     }, 120);
-  }, 500); // 로딩 창이 표시된 후 0.5초 대기
+  }, 100); // 로딩 화면이 표시된 후 0.1초 대기
 }
 
 // 사용자 지정 문제 설정 팝업 창에서 '취소' 버튼 클릭 시 호출되는 함수
@@ -771,6 +838,10 @@ function updateProgress() {
 
 // 결과 표시 함수
 function showResult() {
+  const maxScore = selectedQuestions.length; // 총 문제 수를 최대 점수로 설정
+  const percentageScore = (score / maxScore) * 100; // 점수를 백분율로 변환
+  const formattedScore = percentageScore.toFixed(2); // 소수 둘째 자리까지 포맷팅
+
   console.log("");
   console.log("[SYSTEM] 결과 불러오는 중...");
   document.querySelector("#loading-screen p").innerText =
@@ -789,18 +860,7 @@ function showResult() {
 
   // 로딩 화면 표시된 후 대기 시간 설정
   setTimeout(() => {
-    hideLoadingScreen(); // 로딩 창 숨김
     console.log("[SYSTEM] 로딩 화면 숨김"); // 로딩 화면 숨김 로그
-
-    document.getElementById("quizContainer").style.display = "none";
-    document.getElementById("resultContainer").style.display = "flex";
-
-    console.log("[SYSTEM] 진행 상태 막대 숨김");
-    document.getElementById("progressContainer").style.display = "none"; // 진행 상태 막대 숨기기
-
-    const maxScore = selectedQuestions.length; // 총 문제 수를 최대 점수로 설정
-    const percentageScore = (score / maxScore) * 100; // 점수를 백분율로 변환
-    const formattedScore = percentageScore.toFixed(2); // 소수 둘째 자리까지 포맷팅
 
     let resultText = "";
     let resultImageURL = ""; // 이미지 URL 변수를 추가
@@ -881,8 +941,22 @@ function showResult() {
         "none";
     }
 
-    document.querySelector(".partner-image").src = resultImageURL; // 이미지 변경
-  }, 500); // 로딩 창이 표시된 후 0.5초 대기
+    // 이미지를 로드하고 나서 로딩 화면을 숨김
+    const img = new Image();
+    img.src = resultImageURL; // 점수에 맞는 이미지 로딩
+    img.onload = () => {
+      document.querySelector(".partner-image").src = resultImageURL; // 이미지 변경
+
+      hideLoadingScreen(); // 로딩 화면 숨김
+      console.log("[SYSTEM] 로딩 화면 숨김"); // 로딩 화면 숨김 로그
+
+      document.getElementById("quizContainer").style.display = "none";
+      document.getElementById("resultContainer").style.display = "flex";
+
+      console.log("[SYSTEM] 진행 상태 막대 숨김");
+      document.getElementById("progressContainer").style.display = "none"; // 진행 상태 막대 숨기기
+    };
+  }, 500); // 로딩 화면이 표시된 후 0.5초 대기
 }
 
 // 상장 다운로드 버튼 클릭 이벤트
@@ -1018,13 +1092,27 @@ async function generateCertificate() {
 }
 
 // TTS 함수
-function playPronunciation(pronunciation) {
-  console.log("[SYSTEM] TTS 재생");
+function handlePronunciationClick(question, pronunciation) {
+  console.log("[SYSTEM] 발음 듣기 클릭");
 
-  const selectedTTS = document.getElementById("ttsModel").value;
-  const utterance = new SpeechSynthesisUtterance(pronunciation);
-  utterance.lang = selectedTTS;
-  window.speechSynthesis.speak(utterance);
+  // Speech Synthesis API 지원 확인
+  if ("speechSynthesis" in window) {
+    console.log("[SYSTEM] Speech Synthesis API 지원");
+    console.log("[SYSTEM] TTS 재생");
+    const selectedTTS = document.getElementById("ttsModel").value;
+    const utterance = new SpeechSynthesisUtterance(pronunciation);
+    utterance.lang = selectedTTS;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.log("[SYSTEM] Speech Synthesis API 미지원");
+    console.log("[SYSTEM] 네이버 일본어사전에서 질문 항목 열기");
+
+    // 네이버 일본어사전 웹 사이트 링크 생성
+    const googleTranslateUrl = `https://ja.dict.naver.com/#/search?query=${encodeURIComponent(
+      question
+    )}`;
+    window.open(googleTranslateUrl, "_blank");
+  }
 }
 
 // 최종 결과 화면에서 정오표를 표 형식으로 창을 보여주는 함수
@@ -1083,9 +1171,10 @@ function showAnswerSheet() {
     // 발음 듣기 버튼 추가
     const playPronunciationButton = `
     <img src="./pronunciationListenButton.png" 
-         alt="듣기" 
-         class="pronunciation-button" 
-         onclick="playPronunciation('${question.pronunciation}')" />
+        alt="듣기" 
+        class="pronunciation-button"
+        id="playPronunciationButtonId"
+        onclick="handlePronunciationClick('${question.question}', '${question.pronunciation}')" />
     `;
 
     // 문제의 난이도 가져오기
@@ -1099,10 +1188,16 @@ function showAnswerSheet() {
                 <td style="text-align: center; padding: 10px; ">${difficulty}</td>
                 <td style="padding: 10px;">${questionText}</td>
                 <td style="text-align: center; padding: 10px;">${playPronunciationButton}</td>
-                <td style="padding: 10px;">${allAnswersHtml}</td>
-                <td style="padding: 10px;">${correctAnswerHtml}</td>
+                <td style="padding: 10px;">${allAnswersHtml.replace(
+                  /\\n/g,
+                  " "
+                )}</td>
+                <td style="padding: 10px;">${correctAnswerHtml.replace(
+                  /\\n/g,
+                  " "
+                )}</td>
                 <td style="padding: 10px;">${
-                  answersChosen[index] || "문제 건너뛰기"
+                  answersChosen[index].replace(/\\n/g, " ") || "문제 건너뛰기"
                 }</td>
                 <td style="text-align: center; padding: 10px;">${resultSymbol}</td>
             </tr>`;
@@ -1129,17 +1224,15 @@ function showAnswerSheet() {
   ttsModelSelect.innerHTML = `
     <label for="ttsModel">TTS 모델 선택:</label>
     <select id="ttsModel"></select>
-  `;
+`;
   answerSheetContainer.appendChild(ttsModelSelect);
 
-  // TTS 모델 자동으로 불러오기
-  function populateTTSModelSelect() {
-    console.log("[SYSTEM] TTS 모델 로드");
+  console.log("[SYSTEM] TTS 모델 로드");
 
+  const populateTTSModelSelect = () => {
     const ttsModelSelect = document.getElementById("ttsModel");
     const voices = window.speechSynthesis.getVoices();
 
-    // 드롭박스를 비우고 새로운 음성 목록 추가
     console.log("[SYSTEM] 드롭박스 목록 비우고 TTS 모델 목록 추가");
 
     ttsModelSelect.innerHTML = "";
@@ -1149,10 +1242,7 @@ function showAnswerSheet() {
       option.textContent = `${voice.name} (${voice.lang})`;
       ttsModelSelect.appendChild(option);
     });
-
-    // 기본값으로 일본어 TTS 모델 설정
-    ttsModelSelect.value = "ja-JP"; // 일본어 TTS 모델
-  }
+  };
 
   // TTS 모델이 변경되었을 때 호출
   window.speechSynthesis.onvoiceschanged = populateTTSModelSelect;
@@ -1164,12 +1254,29 @@ function showAnswerSheet() {
     }
   }, 100);
 
+  // Speech Synthesis API 지원 확인
+  if ("speechSynthesis" in window) {
+    console.log("[SYSTEM] Speech Synthesis API 지원");
+  } else {
+    console.log("[SYSTEM] Speech Synthesis API 미지원");
+
+    // TTS 모델 선택 드롭박스를 안 보이게 설정
+    ttsModelSelect.style.display = "none";
+
+    const noTTSMessage = document.createElement("p");
+    noTTSMessage.innerHTML =
+      "이 웹 브라우저에서는 Speech Synthesis API을 사용할 수 없습니다.<br>(발음 버튼 클릭 시 '네이버 일본어사전'으로 이동)";
+    noTTSMessage.style.fontSize = "10px";
+    noTTSMessage.style.textAlign = "center";
+    answerSheetContainer.appendChild(noTTSMessage);
+  }
+
   const buttonContainer = document.createElement("div");
   buttonContainer.classList.add("button-container");
 
   const printButton = document.createElement("button");
   printButton.innerText = "인쇄";
-  printButton.onclick = () => {
+  printButton.onclick = async () => {
     const highlightMistakes =
       document.getElementById("highlightMistakes").checked;
     const highlightColor = document.getElementById("highlightColor").value;
@@ -1178,33 +1285,32 @@ function showAnswerSheet() {
       console.log(
         "[SYSTEM] '오답 항목 강조' 기능 활성화 인쇄 시 안내 문구 표시"
       );
+
       alert(
-        "'오답 항목 강조' 기능이 활성화되었습니다.\n인쇄 옵션에서 '배경 그래픽'과 관련된 기능을 활성화하십시오.\n\n(* 필요에 따라 웹 브라우저 팝업 및 리디렉션을 허용해야 할 수도 있습니다.)"
+        "'오답 항목 강조' 기능이 활성화되었습니다.\n\n인쇄 옵션에서 '배경 그래픽'과 관련된 기능을 활성화하십시오.\n\n(* 필요에 따라 웹 브라우저 팝업 및 리디렉션을 허용해야 할 수도 있습니다.)\n\n(** 모바일 환경에서는 '배경 그래픽'과 관련된 기능을 웹 브라우저가 아닌 인쇄 시 사용할 프린터 앱에서 확인해야 하며, '배경 그래픽'과 관련된 기능 미지원 시 해당 기능을 사용할 수 없습니다.)"
       );
     }
 
-    // 업데이트된 배경색을 적용
-    const rows = document.querySelectorAll(".answer-sheet table tbody tr");
-    rows.forEach((row) => {
-      if (
-        highlightMistakes &&
-        row.querySelector("td:last-child").innerText === "X"
-      ) {
-        row.style.backgroundColor = highlightColor;
-      } else {
-        row.style.backgroundColor = "";
-      }
-    });
-
-    // 인쇄 창 열기
-    const printWindow = window.open("", "");
-    printWindow.document.open();
+    // 인쇄 창 생성
+    const printWindow = window.open("", "캬루와 함께하는 JLPT - 정오표 인쇄");
     printWindow.document.write(`
         <html>
         <head>
-            <title>캬루와 함께하는 JLPT</title>
+            <title>캬루와 함께하는 JLPT - 정오표 인쇄</title>
             <style>
-                body { font-size: 10px; }
+                @font-face {
+                    font-family: 'Noto Serif KR';
+                    src: url('./NotoSerifKR-Regular.ttf') format('truetype');
+                }
+                body {
+                    font-family: 'Noto Serif KR', serif; /* 기본 폰트 */
+                    font-size: 10px;
+                }
+                @media print {
+                    body {
+                        font-family: 'Noto Serif KR', serif; /* 인쇄 시 사용할 폰트 */
+                    }
+                }
                 table { border-collapse: collapse; width: 100%; font-size: 10px; }
                 th, td { border: 1px solid black; padding: 5px; text-align: left;}
                 ${
@@ -1214,18 +1320,18 @@ function showAnswerSheet() {
                 }
             </style>
         </head>
-        <body onload="window.print(); window.close();">
-            <table border="1" style="border-collapse: collapse; width: 100%; text-align: left;">
-              <h2 style="text-align: center;">정오표</h2>
+        <body>
+            <h2 style="text-align: center;">정오표</h2>
+            <table border="1" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">번호</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">과목</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">문제</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">보기</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">정답</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">선택</th>
-                        <th style="text-align: center; padding: 10px; white-space: nowrap;">정오</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">번호</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">과목</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">문제</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">보기</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">정답</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">선택</th>
+                        <th style="text-align: center; padding: 5px; white-space: nowrap;">정오</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1237,18 +1343,17 @@ function showAnswerSheet() {
                         const highlightClass = isCorrect
                           ? ""
                           : "highlight-mistake";
-
                         const allAnswers = displayedAnswers[index] || [];
                         const allAnswersHtml = allAnswers
                           .map(
                             (answer) =>
-                              `<li style="list-style: none; padding-left: 0; margin: 0;"><span style="margin-right: 5px;">•</span>${answer}</li>`
+                              `<li style="list-style: none;">• ${answer}</li>`
                           )
                           .join("");
-
                         const correctAnswerHtml = `<strong>${question.correct}</strong>`;
-                        const questionText = question.question; // 발음 기호는 제외
+                        const questionText = question.question;
 
+                        // 문제의 난이도 가져오기
                         const difficulty =
                           selectedDifficulties.find((difficulty) =>
                             questions[difficulty]?.some(
@@ -1257,19 +1362,26 @@ function showAnswerSheet() {
                           ) || "";
 
                         return `
-                        <tr class="${highlightClass}">
-                          <td style="text-align: center; padding: 10px;">${
-                            index + 1
-                          }</td>
-                          <td style="text-align: center; padding: 10px;">${difficulty}</td>
-                          <td style="padding: 10px;">${questionText}</td>
-                          <td style="padding: 10px;">${allAnswersHtml}</td>
-                          <td style="padding: 10px;">${correctAnswerHtml}</td>
-                          <td style="padding: 10px;">${
-                            answersChosen[index] || "문제 건너뛰기"
-                          }</td>
-                          <td style="text-align: center; padding: 10px;">${resultSymbol}</td>
-                        </tr>`;
+                          <tr class="${highlightClass}">
+                              <td style="text-align: center; padding: 5px;">${
+                                index + 1
+                              }</td>
+                              <td style="text-align: center; padding: 5px; ">${difficulty}</td>
+                              <td style="padding: 5px;">${questionText}</td>
+                              <td style="padding: 5px;">${allAnswersHtml.replace(
+                                /\\n/g,
+                                " "
+                              )}</td>
+                              <td style="padding: 5px;">${correctAnswerHtml.replace(
+                                /\\n/g,
+                                " "
+                              )}</td>
+                              <td style="padding: 5px;">${
+                                answersChosen[index].replace(/\\n/g, " ") ||
+                                "문제 건너뛰기"
+                              }</td>
+                              <td style="text-align: center; padding: 5px;">${resultSymbol}</td>
+                          </tr>`;
                       })
                       .join("")}
                 </tbody>
@@ -1279,6 +1391,7 @@ function showAnswerSheet() {
     `);
     printWindow.document.close();
   };
+
   buttonContainer.appendChild(printButton);
 
   const closeButton = document.createElement("button");
@@ -1365,7 +1478,7 @@ function confirmExit(confirm) {
         console.log("[SYSTEM] 로딩 화면 숨김");
 
         restartQuiz(); // 메인 화면으로 이동
-      }, 100); // 로딩 창이 표시된 후 0.1초 대기
+      }, 100); // 로딩 화면이 표시된 후 0.1초 대기
     } else {
       console.log(
         "[SYSTEM] 최종 결과 화면 처음으로 돌아가기 팝업 창에서 '아니요' 버튼 클릭"
@@ -1386,15 +1499,12 @@ function restartQuiz() {
 
   // 로딩 화면 표시된 후 대기 시간 설정
   setTimeout(() => {
-    hideLoadingScreen(); // 로딩 화면 숨김
-    console.log("[SYSTEM] 로딩 화면 숨김");
-
     document.getElementById("resultContainer").style.display = "none";
     document.getElementById("quizContainer").style.display = "none";
     document.getElementById("menu").style.display = "flex";
     document.getElementById("progressContainer").style.display = "none"; // 진행 상태 막대 숨기기
     resetElements();
-  }, 100); // 로딩 창이 표시된 후 0.1초 대기
+  }, 100); // 로딩 화면이 표시된 후 0.1초 대기
 
   console.log("[SYSTEM] 메인 화면으로 이동");
 }
