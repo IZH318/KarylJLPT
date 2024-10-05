@@ -1227,36 +1227,36 @@ function showAnswerSheet() {
 `;
   answerSheetContainer.appendChild(ttsModelSelect);
 
-  console.log("[SYSTEM] TTS 모델 로드");
-
-  const populateTTSModelSelect = () => {
-    const ttsModelSelect = document.getElementById("ttsModel");
-    const voices = window.speechSynthesis.getVoices();
-
-    console.log("[SYSTEM] 드롭박스 목록 비우고 TTS 모델 목록 추가");
-
-    ttsModelSelect.innerHTML = "";
-    voices.forEach((voice) => {
-      const option = document.createElement("option");
-      option.value = voice.lang;
-      option.textContent = `${voice.name} (${voice.lang})`;
-      ttsModelSelect.appendChild(option);
-    });
-  };
-
-  // TTS 모델이 변경되었을 때 호출
-  window.speechSynthesis.onvoiceschanged = populateTTSModelSelect;
-
-  // 처음에 모델을 불러오고, DOM에 추가된 후에 호출
-  setTimeout(() => {
-    if (window.speechSynthesis.getVoices().length) {
-      populateTTSModelSelect();
-    }
-  }, 100);
-
   // Speech Synthesis API 지원 확인
   if ("speechSynthesis" in window) {
     console.log("[SYSTEM] Speech Synthesis API 지원");
+
+    console.log("[SYSTEM] TTS 모델 로드");
+
+    const populateTTSModelSelect = () => {
+      const ttsModelSelect = document.getElementById("ttsModel");
+      const voices = window.speechSynthesis.getVoices();
+
+      console.log("[SYSTEM] 드롭박스 목록 비우고 TTS 모델 목록 추가");
+
+      ttsModelSelect.innerHTML = "";
+      voices.forEach((voice) => {
+        const option = document.createElement("option");
+        option.value = voice.lang;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        ttsModelSelect.appendChild(option);
+      });
+    };
+
+    // TTS 모델이 변경되었을 때 호출
+    window.speechSynthesis.onvoiceschanged = populateTTSModelSelect;
+
+    // 처음에 모델을 불러오고, DOM에 추가된 후에 호출
+    setTimeout(() => {
+      if (window.speechSynthesis.getVoices().length) {
+        populateTTSModelSelect();
+      }
+    }, 100);
   } else {
     console.log("[SYSTEM] Speech Synthesis API 미지원");
 
