@@ -102,8 +102,6 @@ async function loadQuestions() {
             pronunciation,
           });
         });
-
-        console.log("Questions loaded:", questions); // 디버깅 로그 추가
       },
     });
   } catch (error) {
@@ -150,39 +148,73 @@ window.onload = async () => {
   const partnerImage = new Image();
   partnerImage.src = "./asm_partner_01_base.png";
 
+  const listenButtonImage = new Image();
+  listenButtonImage.src = "./pronunciationListenButton.png";
+
   // 폰트 및 이미지 로드 대기
   await Promise.all([
-    (async () => {
+    new Promise((resolve, reject) => {
       console.log("[SYSTEM] 폰트 로딩 중...");
       document.querySelector("#loading-screen p").innerText = "폰트 로딩 중...";
-      try {
-        await Promise.all([
-          Noto_Sans_Font.load(),
-          Noto_Serif_Font.load(),
-          Allison_Font.load(),
-        ]);
-        console.log("[SYSTEM] 폰트 로딩 완료");
-        document.querySelector("#loading-screen p").innerText =
-          "폰트 로딩 완료";
-      } catch (error) {
-        console.error("[SYSTEM] 폰트 로딩 실패", error);
-        document.querySelector("#loading-screen p").innerText =
-          "폰트 로딩 실패";
-      }
-    })(),
-    new Promise((resolve) => {
+
+      let loadedFonts = 0;
+      const checkComplete = () => {
+        loadedFonts++;
+        if (loadedFonts === 3) {
+          console.log("[SYSTEM] 폰트 로딩 완료");
+          document.querySelector("#loading-screen p").innerText =
+            "폰트 로딩 완료";
+          resolve();
+        }
+      };
+
+      Noto_Sans_Font.load()
+        .then(checkComplete)
+        .catch((error) => {
+          console.error("[SYSTEM] Noto Sans KR 폰트 로딩 실패", error);
+          reject();
+        });
+
+      Noto_Serif_Font.load()
+        .then(checkComplete)
+        .catch((error) => {
+          console.error("[SYSTEM] Noto Serif KR 폰트 로딩 실패", error);
+          reject();
+        });
+
+      Allison_Font.load()
+        .then(checkComplete)
+        .catch((error) => {
+          console.error("[SYSTEM] Allison 폰트 로딩 실패", error);
+          reject();
+        });
+    }),
+    new Promise((resolve, reject) => {
       console.log("[SYSTEM] 이미지 로딩 중...");
       document.querySelector("#loading-screen p").innerText =
         "이미지 로딩 중...";
-      partnerImage.onload = () => {
-        console.log("[SYSTEM] 이미지 로딩 완료");
-        document.querySelector("#loading-screen p").innerText =
-          "이미지 로딩 완료";
-        resolve();
+
+      let loadedImages = 0;
+      const checkComplete = () => {
+        loadedImages++;
+        if (loadedImages === 2) {
+          console.log("[SYSTEM] 이미지 로딩 완료");
+          document.querySelector("#loading-screen p").innerText =
+            "이미지 로딩 완료";
+          resolve();
+        }
       };
+
+      partnerImage.onload = checkComplete;
       partnerImage.onerror = () => {
-        console.error("[SYSTEM] 이미지 로딩 실패");
-        resolve(); // 오류 발생 시에도 resolve 호출
+        console.error("[SYSTEM] 메인 화면 캐릭터 이미지 로딩 실패");
+        reject();
+      };
+
+      listenButtonImage.onload = checkComplete;
+      listenButtonImage.onerror = () => {
+        console.error("[SYSTEM] 정오표 발음 버튼 이미지 로딩 실패");
+        reject();
       };
     }),
   ]);
@@ -264,6 +296,7 @@ function confirmSelection(confirm) {
 
 // 문제 수 입력 팝업 창 표시 함수
 function showQuestionCountInput() {
+  console.log("");
   console.log("[SYSTEM] 문제 수 입력 팝업 창 표시");
 
   const questionCountContainer = document.getElementById(
@@ -405,6 +438,7 @@ function handleCustomQuizConfirmation(confirm) {
 
 // 사용자 지정 문제 설정 팝업 창 표시 함수
 function showCustomQuestionCountInput() {
+  console.log("");
   console.log("[SYSTEM] 사용자 지정 문제 설정 팝업 창 표시");
 
   const customQuestionCountContainer = document.getElementById(
